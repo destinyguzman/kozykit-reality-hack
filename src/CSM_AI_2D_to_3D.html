@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>2D-to-3D Converter</title>
+    <!-- Include Three.js (r152.2 or newer). You can adjust the version if needed. -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+    <!-- Include OrbitControls for basic mouse interactions. -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/controls/OrbitControls.js"></script>
+    <!-- Include GLTFLoader (for loading .glb/.gltf files). -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 16px;
+      }
+      #upload-form {
+        margin-bottom: 16px;
+      }
+      #viewer {
+        width: 800px;
+        height: 600px;
+        border: 1px solid #ccc;
+      }
+      #status {
+        margin-bottom: 8px;
+      }
+      button {
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Convert 2D Image to 3D Model</h1>
+    <form id="upload-form">
+      <input type="file" id="image-file" accept="image/*" />
+      <button type="submit">Upload & Convert</button>
+    </form>
+    <div id="status"></div>
+    <div id="viewer"></div>
+
+    <script>
+      // Insert your API key from Common Sense Machines
+      const apiKey = "<replace with CSM.ai API key>";
+
+        alert('Please replace the placeholder "<replace with CSM.ai API key>" with your actual API key from CSM.ai');
+
+      // ----------------------------------------------------------
+      // 1. CREATE SESSION
+      //    Your 'Create Session' endpoint may differ. The example below
+      //    sends JSON with a base64-encoded image string. Adjust as needed.
+      // ----------------------------------------------------------
+      async function createSession(imageData) {
+        const url = "https://api.csm.ai/image-to-3d-sessions";
+        const payload = {
+          // The backend must accept the base64 data. If your docs require
+          // a direct URL instead, you can upload it elsewhere and pass that URL.
+          image_url: imageData,  
+        };
+
+        const resp = await fetch(url, {
+          method: "POST",
+          headers: {
+            "x-api-key": apiKey,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!resp.ok) {
+          throw new Error(`Failed to create session: ${resp.statusText}`);
+        }
+
+        return resp.json();
+      }
+
+      // ----------------------------------------------------------
+      // 2. REQUEST REFINEMENT
+      //    This uses the "Get 3D Refined Mesh" endpoint from your docs.
+      //    e.g., POST https://api.csm.ai/image-to-3d-sessions/get-3d/refine/<Session Code>
+      // ----------------------------------------------------------
+      async function refineMesh(sessionCode) {
+        const url = `https://api.csm.ai/image-to-3d-sessions/get-3d/refine/${sessionCode}`;
+
+        const resp = await fetch(url, {
+          method: "POST",
+          headers: {
+            "x-api-key": apiKey,
+            "Content-Type": "application/json"
+          },
+          // You can pass optional parameters if needed:
+          // body: JSON.stringify({ scaled_bbox: [...], pivot_point: [...] })
+          body: JSON.stringify({})
+        });
+
+        if (!resp.ok) {
+          throw new Error(`Failed to refine mesh: ${resp.statusText}`);
+        }
+
+        return resp.json();
+      }
+
+      // ----------------------------------------------------------
+      // 3. GET FINAL MESH URL
+      //    According to your docs, you can retrieve the final .glb or .gltf
+      //    file with a separate GET call. The sample name is "Get Mesh URL".
+      // ----------------------------------------------------------
+      async function getMeshURL(sessionCode) {
+        const url = `https://api.csm.ai/image-to-3d-sessions/get-3d/url/${sessionCode}`;
+        const resp = await fetch(url, {
+          method: "GET",
+          headers: {
+            "x-api-key": apiKey
+          }
+        });
+
+        if (!resp.ok) {
+          throw new Error(`Failed to get mesh URL: ${resp.statusText}`);
+        }
+
+        return resp.json();
+      }
+
+      // ----------------------------------------------------------
+      // 4. RENDER THE 3D MODEL WITH THREE.JS
+      //    Here we create a simple scene with OrbitControls.
+      // ----------------------------------------------------------
+      function displayMesh(meshUrl) {
+        const container = document.getElementById("viewer");
+
+        // Basic Three.js setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(
+          75,
+          container.clientWidth / container.clientHeight,
+          0.1,
+          1000
+        );
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.innerHTML = ""; // clear any existing content
+        container.appendChild(renderer.domElement);
+
+        // Controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(0, 10, 10);
+        scene.add(directionalLight);
+
+        // Load the model using GLTFLoader
+        const loader = new THREE.GLTFLoader();
+        loader.load(
+          meshUrl,
+          (gltf) => {
+            scene.add(gltf.scene);
+            camera.position.z = 2;
+            animate();
+          },
+          undefined,
+          (error) => {
+            console.error("Error loading model:", error);
+          }
+        );
+
+        function animate() {
+          requestAnimationFrame(animate);
+          controls.update();
+          renderer.render(scene, camera);
+        }
+      }
+
+      // ----------------------------------------------------------
+      // 5. MAIN FLOW (Form submission)
+      // ----------------------------------------------------------
+      document.getElementById("upload-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const fileInput = document.getElementById("image-file");
+        const statusEl = document.getElementById("status");
+
+        if (!fileInput.files || !fileInput.files[0]) {
+          statusEl.textContent = "Please select an image file first.";
+          return;
+        }
+
+        // Read file as a base64 data URL
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onloadend = async () => {
+          try {
+            statusEl.textContent = "Creating session (uploading image)...";
+            // 1. Create the session
+            const sessionResult = await createSession(reader.result);
+
+            if (sessionResult.error) {
+              throw new Error(sessionResult.error);
+            }
+
+            const sessionCode = sessionResult.data?.session_code;
+            statusEl.textContent = `Session created: ${sessionCode}. Refining mesh...`;
+
+            // 2. Request refining
+            const refineResult = await refineMesh(sessionCode);
+            if (refineResult.error) {
+              throw new Error(refineResult.error);
+            }
+
+            statusEl.textContent =
+              "Refinement requested. This may take a while. Waiting for final mesh URL...";
+
+            // 3. Poll until we get a final mesh URL
+            let meshUrl = null;
+            while (!meshUrl) {
+              // Wait a bit between polling attempts
+              await new Promise((resolve) => setTimeout(resolve, 5000));
+              const meshResp = await getMeshURL(sessionCode);
+
+              // If the API signals that the mesh is ready...
+              if (meshResp.data && meshResp.data.output_url) {
+                meshUrl = meshResp.data.output_url;
+              }
+            }
+
+            statusEl.textContent = "Mesh is ready. Rendering...";
+            // 4. Finally, display the mesh
+            displayMesh(meshUrl);
+          } catch (err) {
+            console.error(err);
+            statusEl.textContent = "Error: " + err.message;
+          }
+        };
+
+        reader.readAsDataURL(file);
+      });
+    </script>
+  </body>
+</html>

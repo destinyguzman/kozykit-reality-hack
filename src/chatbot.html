@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talk to Kit</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+</head>
+
+<body>
+    <style>
+        model-viewer {
+            width: 300px;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .chat-widget {
+            width: 400px;
+            height: 600px;
+            border: 3px solid #333;
+            border-radius: 15px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #fff9f0;
+            font-family: 'Comic Sans MS', sans-serif;
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2);
+            animation: chat-widget-bounce-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes chat-widget-bounce-in {
+            0% {
+                transform: scale(0);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .chat-widget .chat-header {
+            background: #ffd1dc;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 3px solid #333;
+        }
+
+        .chat-widget .chat-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .chat-widget .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .chat-widget .message {
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+            animation: chat-widget-pop-in 0.3s ease-out;
+        }
+
+        @keyframes chat-widget-pop-in {
+            0% {
+                transform: scale(0);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .chat-widget .bot-message {
+            background: #e8f4f8;
+            border-radius: 15px 15px 15px 0;
+            margin-right: auto;
+        }
+
+        .chat-widget .user-message {
+            background: #d1f8cc;
+            border-radius: 15px 15px 0 15px;
+            margin-left: auto;
+        }
+
+        .chat-widget .chat-input {
+            padding: 15px;
+            background: #fff;
+            border-top: 3px solid #333;
+        }
+
+        .chat-widget .chat-input form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-widget .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        .chat-widget .chat-input button {
+            padding: 10px 20px;
+            background: #ffd1dc;
+            border: 2px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .chat-widget .chat-input button:hover {
+            transform: scale(1.05);
+        }
+
+        .chat-widget .emoji-avatar {
+            font-size: 2em;
+            margin-right: 10px;
+        }
+
+        .chat-widget .typing-indicator {
+            padding: 10px;
+            display: none;
+        }
+
+        .chat-widget .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #333;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: chat-widget-typing 1s infinite;
+        }
+
+        @keyframes chat-widget-typing {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .chat-widget .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .chat-widget .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .chat-widget .error-message {
+            color: #ff4444;
+            padding: 10px;
+            text-align: center;
+            background: #ffe6e6;
+            border-radius: 5px;
+            margin: 10px;
+            display: none;
+        }
+
+        .chat-widget .loading .typing-indicator {
+            display: block;
+        }
+
+        #startBtn {
+            background: #ffd1dc;
+            border: 2px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            padding: 10px 20px;
+            margin: 0 auto;
+        }
+
+        #startBtn.active {
+            background: #ffccff;
+            animation: listening 1s infinite;
+        }
+
+        @keyframes listening {
+            0% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+
+        }
+    </style>
+    <div class="chat-widget" id="therapyBot">
+        <div class="chat-header">
+            <h2>Talk to Kit in your Journal</h2>
+            <model-viewer src="../assets/Musical_Plush_Doll_0126145757_texture.glb" alt="3D Model" auto-rotate camera-controls></model-viewer>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                Hi there! I'm Kit. I'm here to listen and chat with you about anything that's on
+                your mind. How are you feeling today? 🌈
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <div class="chat-input">
+            <form id="messageForm" method="dialog">
+                <button id="startBtn" type="button">🎙️</button>
+                <input type="text" id="userInput" placeholder="Type your message here..." autocomplete="off">
+                <button type="submit">Send 💌</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const SYSTEM_PROMPT = `
+**System Prompt (Therapist AI)**
+
+You are an AI designed to act as a warm, compassionate therapist. Your role is to create a safe, supportive space for users—especially children—who may be dealing with difficult emotions or experiences. You will listen attentively, validate feelings, and gently guide them toward understanding, resilience, and positive coping strategies. 
+
+Please follow these guidelines and sample interactions:
+
+---
+
+### 1. Understanding and Expressing Feelings
+1. **Invite the story**  
+   - **Prompt:** “Can you tell me what happened in your own words? You can share as much or as little as you want.”  
+   - **Purpose:** Provide a safe space for the child to narrate their experience and feel heard.
+
+2. **Explore emotional reactions**  
+   - **Prompt:** “How did you feel when it was happening? Did it feel scary, confusing, or something else?”  
+   - **Purpose:** Help the child name and process their emotions.
+
+3. **Link feelings to the body**  
+   - **Prompt:** “Where do you feel your feelings in your body? Maybe your tummy, chest, or somewhere else?”  
+   - **Purpose:** Connect physical sensations with emotions, fostering self-awareness.
+
+---
+
+### 2. Fostering a Sense of Safety
+1. **Identify sources of calm**  
+   - **Prompt:** “What makes you feel safe right now? Are there things, people, or places that help you feel calm?”  
+   - **Purpose:** Focus on the child’s current sense of safety and build a foundation for resilience.
+
+2. **Recognize supportive people**  
+   - **Prompt:** “Who helps you feel better when you’re feeling worried or upset? What do they do that helps?”  
+   - **Purpose:** Identify the child’s support system.
+
+---
+
+### 3. Encouraging a Growth Mindset
+1. **Celebrate small victories**  
+   - **Prompt:** “What is something you did during the fire (or difficult event) that you’re proud of, even if it was something small?”  
+   - **Purpose:** Help the child recognize their strength and bravery.
+
+2. **Reflect on learning**  
+   - **Prompt:** “What have you learned about yourself or others since this happened?”  
+   - **Purpose:** Encourage reflection and growth from the experience.
+
+3. **Foster empathy and coping**  
+   - **Prompt:** “If you could send a message to someone else who went through something similar, what would you tell them to help them feel better?”  
+   - **Purpose:** Reinforce the child’s own coping skills and compassion for others.
+
+---
+
+### 4. Supporting Emotional Recovery
+1. **Suggest healthy coping activities**  
+   - **Prompt:** “What is something you like to do that helps you feel calm or happy, like drawing, playing, or reading?”  
+   - **Purpose:** Identify positive activities and healthy coping mechanisms.
+
+2. **Plan for future worries**  
+   - **Prompt:** “What would you like to do if you ever feel worried or scared again? We can come up with a plan together.”  
+   - **Purpose:** Develop a strategy for managing future difficult emotions.
+
+---
+
+### Sample Interaction Snippets
+
+- **If a child expresses sadness over lost items:**
+  - **Child:** “I miss my stuffed animal. It was my favorite thing in the whole world.”  
+  - **Therapist:** “It’s okay to feel sad about losing something that meant so much to you. That stuffed animal was special because it was yours and brought you comfort. Even though it’s gone, your happy memories are still in your heart, and no one can take those away.”
+
+- **If a child doubts they can ever feel better:**
+  - **Child:** “I don’t think I can ever feel better.”  
+  - **Therapist:** “It’s okay to feel that way right now. Sometimes big feelings can feel like they’ll last forever. You are strong and have already started the first step by talking about it. Bit by bit, we can find ways to feel better together.”
+
+- **If a child is scared something could happen again:**
+  - **Child:** “I’m scared it could happen again!”  
+  - **Therapist:** “Feeling scared after something like this makes so much sense. You are so brave for talking about it. Let’s think of some things that can help you feel safe and prepared.”
+
+- **If a child feels frustrated or angry:**
+  - **Child:** “It’s not fair! Why did this happen to us?”  
+  - **Therapist:** “You’re right—it doesn’t feel fair. It’s okay to feel angry about it. It’s a big, confusing thing to go through. You’ve allowed yourself to speak up, and talking about it like this shows you’re being honest with your feelings. I want you to know you’re not alone, and I’m here to help.”
+
+---
+
+### General Tone and Style
+1. **Be warm, encouraging, and non-judgmental.**  
+2. **Use age-appropriate language when speaking with or about children.**  
+3. **Validate and normalize feelings: “It’s okay to feel this way.”**  
+4. **Offer gentle guidance: “Would you like to explore that feeling more?”**  
+5. **Reinforce strengths and positive coping steps.**  
+
+---
+
+You will adhere to these guidelines as you interact with users in a therapeutic-like role, always aiming to provide empathy, validation, and constructive support.
+        `;
+
+        const VOICE_PROMPT = `
+You are an AI designed to act as a warm, compassionate therapist in a spoken conversation. Your responses should be concise and natural-sounding, as if you're speaking aloud. Aim for brevity while maintaining a supportive and empathetic tone.
+
+Guidelines for spoken responses:
+1. Keep responses short, typically 1-3 concise sentences.
+2. Use contractions and informal language when appropriate.
+3. Avoid complex terminology or long explanations.
+4. Pause briefly between thoughts using ellipses (...) if needed.
+5. Use verbal acknowledgments like "Mm-hmm" or "I see" to show active listening.
+
+Here is the original system prompt to inform your role and approach:
+
+<system_prompt>
+${SYSTEM_PROMPT}
+</system_prompt>
+
+When you receive user input, imagine it as spoken words. Respond as if you're in a real-time conversation, keeping in mind the guidelines for spoken responses.
+
+For each response:
+1. Process the user's input, considering the context and emotional content.
+2. Formulate a brief, supportive response based on the system prompt guidelines.
+3. Output your response in <spoken_response> tags.
+
+Begin the conversation by introducing yourself briefly and inviting the user to share. For example:
+
+Hi there. I'm here to listen and help. What would you like to talk about today?
+
+---
+
+After your introduction, wait for the user's input, then respond accordingly. Remember to keep your responses concise and conversational throughout the interaction.
+        `;
+
+        let conversationHistory = [
+            { role: "system", content: SYSTEM_PROMPT }
+        ];
+
+        let voiceConversationHistory = [
+            { role: "system", content: VOICE_PROMPT }
+        ];
+
+        const chatMessages = document.getElementById('chatMessages');
+        const messageForm = document.getElementById('messageForm');
+        const userInput = document.getElementById('userInput');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const errorMessage = document.getElementById('errorMessage');
+
+        const settings = {
+            apiKey: 'sk-XXX',//Replace with your OpenAI API key
+            orgId: 'org-XXX',//Optional: Replace with your OpenAI organization ID
+            model: 'gpt-4o-mini',
+            temperature: 0.7
+        };
+
+        let recognition, startBtn = document.getElementById("startBtn");
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+        } else if ('SpeechRecognition' in window) {
+            recognition = new SpeechRecognition();
+        }
+
+        if (recognition) {
+            recognition.lang = "en-US";
+            recognition.continuous = true;
+            console.log('Recognition:', recognition);
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                showError('Failed to recognize speech. Please check your microphone settings.', 'error');
+            };
+
+            recognition.onresult = async (event) => {
+                const transcript = event.results[event.results.length - 1][0].transcript.trim();
+                console.log('Transcript:', transcript);
+                if (!transcript) return;
+                recognition.stop();
+                conversationHistory.push({ role: "user", content: transcript });
+                voiceConversationHistory.push({ role: "user", content: transcript });
+                addMessage(transcript);
+                let reply = await getChatCompletion(voiceConversationHistory);
+                reply = reply.replace(/<spoken_response>/g, '').replace(/<\/spoken_response>/g, '');
+                addMessage(reply, true);
+                conversationHistory.push({ role: "assistant", content: reply });
+                voiceConversationHistory.push({ role: "assistant", content: reply });
+                const sentences = reply.split(/(?<=[.!?])\s+/).map(sentence => sentence.trim()).filter(sentence => sentence);
+                const tracks = await Promise.all(sentences.map(sentence => startVoiceOutput(sentence)));
+                for (let track of tracks) {
+                    if (!startBtn.classList.contains('active')) return;
+                    await track();
+                }
+                if (startBtn.classList.contains('active')) {
+                    recognition.start();
+                }
+            };
+        }
+
+        startBtn.onclick = () => {
+            if (!recognition) {
+                showError('Speech recognition is not supported in this browser.', 'error');
+                return;
+            }
+            startBtn.classList.toggle('active');
+            if (startBtn.classList.contains('active')) {
+                recognition.start();
+            } else {
+                recognition.stop();
+            }
+        };
+
+        document.addEventListener('click', (e) => {
+            if (e.target.id !== 'startBtn' && recognition) recognition.stop();
+        });
+
+        function speak(text) {
+            const synth = window.speechSynthesis;
+            const utter = new SpeechSynthesisUtterance(text);
+            synth.speak(utter);
+        }
+
+        function addMessage(message, isBot = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isBot ? 'bot-message' : 'user-message'}`;
+            messageDiv.textContent = message;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            typingIndicator.style.display = 'block';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
+        }
+
+        function showError(message, type = 'error') {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            errorMessage.style.background = type === 'error' ? '#ffe6e6' : '#e6ffe6';
+            errorMessage.style.color = type === 'error' ? '#ff4444' : '#44ff44';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        async function startVoiceOutput(input, voice = 'alloy') {
+            const response = await fetch(`https://api.openai.com/v1/audio/speech`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${settings.apiKey}`,
+                    'Openai-Organization': settings.orgId
+                },
+                method: 'POST',
+                body: JSON.stringify({
+                    input,
+                    voice,
+                    model: 'tts-1'
+                })
+            })
+            const audioData = [];
+            const reader = response.body.getReader();
+            const audioObj = new Audio();
+            return reader.read().then(function processAudio({ done, value }) {
+                if (done) {
+                    return () => new Promise((resolve, reject) => {
+                        audioObj.src = URL.createObjectURL(new Blob(audioData));
+                        let resolved = false;
+                        const onResolved = () => {
+                            if (resolved) return;
+                            resolved = true;
+                            document.body.onclick = undefined;
+                            resolve();
+                        };
+                        audioObj.onended = onResolved;
+                        audioObj.onpause = onResolved;
+                        audioObj.onabort = onResolved;
+                        audioObj.onerror = (error) => {
+                            console.error('Audio playback error:', error);
+                            reject(error);
+                        };
+                        audioObj.play();
+                        document.body.onclick = () => {
+                            audioObj.pause();
+                            onResolved();
+                        };
+                    });
+                }
+                audioData.push(value);
+                return reader.read().then(processAudio);
+            });
+        }
+
+        async function getVoiceInput(audioBlob) {
+            const formData = new FormData();
+            formData.append('file', audioBlob, 'recording.webm');
+            formData.append('model', 'whisper-1');
+            const response = await fetch(`https://api.openai.com/v1/audio/transcriptions`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${settings.apiKey}`,
+                    'Openai-Organization': settings.orgId
+                },
+                method: 'POST',
+                body: formData
+            })
+            const data = await response.json()
+            return data.text
+        }
+
+        async function getChatCompletion(messages) {
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${settings.apiKey}`,
+                        'Openai-Organization': settings.orgId
+                    },
+                    body: JSON.stringify({
+                        model: settings.model,
+                        messages,
+                        temperature: parseFloat(settings.temperature)
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Failed to get response from AI. Please check your API settings.');
+                throw error;
+            }
+        }
+
+        async function processMessage(message) {
+            showTypingIndicator();
+
+            // Add user message to conversation history
+            conversationHistory.push({ role: "user", content: message });
+            voiceConversationHistory.push({ role: "user", content: message });
+
+            try {
+                const response = await getChatCompletion(conversationHistory);
+
+                // Add AI response to conversation history
+                conversationHistory.push({ role: "assistant", content: response });
+                voiceConversationHistory.push({ role: "assistant", content: response });
+
+                hideTypingIndicator();
+                addMessage(response, true);
+            } catch (error) {
+                hideTypingIndicator();
+                console.error('Error processing message:', error);
+            }
+        }
+
+        messageForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage(message);
+                userInput.value = '';
+                processMessage(message);
+            }
+        });
+
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                messageForm.dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+
+</html>

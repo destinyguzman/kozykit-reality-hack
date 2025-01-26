@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>360 Photo Creator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- A-Frame (for easy 360/VR/AR) -->
+  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <!-- AR.js for optional AR functionalities -->
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.3.2/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: sans-serif;
+      background: linear-gradient(to bottom right, #fbc2eb, #a18cd1);
+      overflow: hidden;
+    }
+    #ui {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.4);
+      color: #fff;
+      padding: 0.5rem;
+      box-sizing: border-box;
+    }
+    #ui input[type="file"] {
+      display: none;
+    }
+    #ui label, #ui button {
+      background: #ff6f61;
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      margin: 0.2rem;
+      color: #fff;
+    }
+    #ui label:hover, #ui button:hover {
+      background: #ff4430;
+    }
+    #stickerGallery img {
+      width: 40px;
+      height: 40px;
+      margin: 0.2rem;
+      cursor: pointer;
+      border: 2px solid transparent;
+      border-radius: 6px;
+    }
+    #stickerGallery img:hover {
+      border-color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+<!-- UI controls on top -->
+<div id="ui">
+  <label for="fileInput">Upload 360 Photo</label>
+  <input type="file" id="fileInput" accept="image/*">
+
+  <button id="toggleViewBtn">Toggle 360/AR</button>
+
+  <div id="stickerGallery">
+    <span>Add Object:</span>
+    <img src="https://twemoji.maxcdn.com/2/72x72/1f984.png" data-url="https://twemoji.maxcdn.com/2/72x72/1f984.png" alt="Unicorn" />
+    <img src="https://twemoji.maxcdn.com/2/72x72/1f47e.png" data-url="https://twemoji.maxcdn.com/2/72x72/1f47e.png" alt="Alien" />
+    <img src="https://twemoji.maxcdn.com/2/72x72/1f436.png" data-url="https://twemoji.maxcdn.com/2/72x72/1f436.png" alt="Dog" />
+  </div>
+</div>
+
+<!-- A-Frame scene -->
+<a-scene 
+  id="scene"
+  embedded
+  vr-mode-ui="enabled: true"
+  arjs="sourceType: webcam; debugUIEnabled: false;" 
+  style="width: 100%; height: 100%;">
+  
+  <!-- The "Sky" for the 360 Photo -->
+  <a-sky id="sky" color="#000"></a-sky>
+
+  <!-- A camera rig so user can look around the 360 environment -->
+  <a-entity id="cameraRig" position="0 1.6 0">
+    <a-entity camera
+              look-controls="pointerLockEnabled: false; touchEnabled: true;"
+              wasd-controls="enabled: false;">
+    </a-entity>
+  </a-entity>
+
+  <!-- 
+    Optional AR marker usage:
+    <a-marker preset="hiro">
+      <a-box position="0 0.5 0" material="color: yellow;"></a-box>
+    </a-marker>
+  -->
+  
+  <!-- We will add "object" entities dynamically here -->
+  <a-entity id="objectsRoot"></a-entity>
+
+</a-scene>
+
+<script>
+  /* 
+    This script does the following:
+    1) Let user upload a 360 equirectangular image -> set as <a-sky> texture
+    2) Switch between normal 360 mode and AR mode with a button
+    3) Place "stickers" (2D images) or objects in the scene at a chosen angle
+       - For simplicity, we let the user click on the 360 to place an object 
+         OR place them at a default angle 
+  */
+
+  const fileInput = document.getElementById('fileInput');
+  const sky = document.getElementById('sky');
+  const scene = document.getElementById('scene');
+  const toggleViewBtn = document.getElementById('toggleViewBtn');
+  const objectsRoot = document.getElementById('objectsRoot');
+  const stickerGallery = document.getElementById('stickerGallery');
+
+  let isARMode = false;
+  let currentTextureURL = null;
+
+  // 1) Upload 360 Photo -> set <a-sky> texture
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      currentTextureURL = ev.target.result; // data URL
+      sky.setAttribute('src', currentTextureURL);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // 2) Toggle between normal 360 VR mode and AR mode
+  //    We'll do a minimal approach: toggling the "arjs" component 
+  //    on the <a-scene> and adjusting the <a-sky> visibility. 
+  //    In a real app, you might need more robust toggling logic.
+  toggleViewBtn.addEventListener('click', () => {
+    isARMode = !isARMode;
+    if (isARMode) {
+      // Enable AR mode
+      scene.setAttribute('arjs', 'sourceType: webcam; debugUIEnabled: false;');
+      sky.setAttribute('visible', 'false'); 
+      toggleViewBtn.textContent = "Switch to 360";
+    } else {
+      // Return to 360 mode
+      scene.removeAttribute('arjs');
+      sky.setAttribute('visible', 'true'); 
+      toggleViewBtn.textContent = "Switch to AR";
+    }
+  });
+
+  // 3) Add objects (stickers) in the scene when a user clicks a gallery image
+  stickerGallery.addEventListener('click', function(e) {
+    if (e.target && e.target.dataset.url) {
+      const url = e.target.dataset.url;
+      addStickerObject(url);
+    }
+  });
+
+  function addStickerObject(imgURL) {
+    // We'll place this object at some default angle in front of the camera
+    // Then the user can reposition it with A-Frame built-in VR/AR interactions or code your own.
+    // For now, let's place it 2 meters ahead, at camera facing direction.
+    const cameraRig = document.getElementById('cameraRig');
+    const camRotation = cameraRig.getAttribute('rotation');
+
+    // Convert rotation to a direction vector (simplified polar approach)
+    const radY = THREE.Math.degToRad(camRotation.y);
+    const forwardX = -Math.sin(radY);
+    const forwardZ = -Math.cos(radY);
+
+    const posX = cameraRig.object3D.position.x + forwardX * 2.0; // 2m ahead
+    const posY = cameraRig.object3D.position.y;
+    const posZ = cameraRig.object3D.position.z + forwardZ * 2.0;
+
+    // Create an <a-image> entity in front of the user
+    const newObj = document.createElement('a-image');
+    newObj.setAttribute('src', imgURL);
+    newObj.setAttribute('position', `${posX} ${posY} ${posZ}`);
+    newObj.setAttribute('rotation', `0 ${camRotation.y+180} 0`);
+    // Slight scale down if needed
+    newObj.setAttribute('scale', '1 1 1');
+    // Make sure it always faces the camera in 360 (billboard effect):
+    newObj.setAttribute('look-at', '[camera]');
+    // We can also allow user to "grab" and move in VR using the a-frame extras if we want.
+
+    objectsRoot.appendChild(newObj);
+  }
+</script>
+</body>
+</html>
