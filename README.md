@@ -11,7 +11,6 @@ Beyond personal transformation, KozyKit promotes connection and resilience throu
 2. Therapeutic Journaling: An AI-powered journaling tool helps children process emotions and build resilience.
 3. Collaborative Play: Multiplayer features allow kids to share toys, decorate spaces, and explore their friends' roomscapes together.
 
-
 ## What's Next 
 1. Interactive check ins with Kit (fox avatar): Users will be able to ask Kit if their friends are online, or can talk to her directly instead of journaling. Kit will be able to respond verbally and engage users in conversation, improving copresence/UX.
 3. Expanded Themes: Introducing new imaginative worlds for even more creative exploration.
@@ -27,6 +26,9 @@ Beyond personal transformation, KozyKit promotes connection and resilience throu
 4. Integrated a chatbot widget (custom-designed HTML and JavaScript interface) for interactive therapeutic conversations. The bot uses OpenAI's Chat Completions API (GPT-4) to deliver empathetic responses aligned with mental health best practices.
 5. AI-assisted coding and prototyping tools (ChatGPT, Bolt.new, Claude.ai, websim.ai) helped to streamline idea generation and compatibility of web-based AR/XR experiences (e.g. AR.js, A-Frame, 8th Wall, NeedleEngine/Unity, BabylonJS)
 
+## Test Project
+https://anomalouspixel-37472.bubbleapps.io/version-test
+
 ## Contributors 
 1. Project Manager: Destiny Guzman
 2. Developer: Greg DeCarlo, Leo (Pixel Hustler)
@@ -35,7 +37,6 @@ Beyond personal transformation, KozyKit promotes connection and resilience throu
 
 ## Acknowledgements
 We deeply thank the residents of Los Angeles who have endured the recent wildfires for sharing their stories and perspectives with us. Your courage and resilience have profoundly shaped KozyKit, guiding its mission to bring comfort and joy to displaced children during this challenging time. KozyKit is a testament to the strength and compassion of this incredible community, and we are honored to support you in helping those who need it most.
-
 
 ## Additional Information
 Check out our Devpost for more information: https://devpost.com/software/kozykit
