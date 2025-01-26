@@ -20,6 +20,13 @@ Beyond personal transformation, KozyKit promotes connection and resilience throu
 6. Storytelling Integration: Adding interactive storytelling elements to deepen engagement and play.
 7. Accessibility Improvements: Ensuring KozyKit is inclusive and easy to use for all children.
 
+## Technical Overview
+1. Built using Bubble.io, a no-code platform for rapid UI/UX prototyping and development. Provided a streamlined platform for building authentication, data/file storage, navigation, styled/themed templates and other features into a unified application. Plugin marketplace enabled rich file upload and 3D model-viewing capabilities in a low-code style integrated workflow environment.
+2. CSM.ai Integration: Used to transform 2D images (uploaded by users) into 3D models. The application waits for 3D models to be processed and then allows users to display them in their environment.
+3. Leveraging the embedded model-viewer control children can place their recreated objects in virtual roomscapes (skyboxes) or view them in their real-world environment through AR-capable devices, allowing users to adjust, move, and resize objects within immersive environments, mimicking a "digital dollhouse."
+4. Integrated a chatbot widget (custom-designed HTML and JavaScript interface) for interactive therapeutic conversations. The bot uses OpenAI's Chat Completions API (GPT-4) to deliver empathetic responses aligned with mental health best practices.
+5. AI-assisted coding and prototyping tools (ChatGPT, Bolt.new, Claude.ai, websim.ai) helped to streamline idea generation and compatibility of web-based AR/XR experiences (e.g. AR.js, A-Frame, 8th Wall, NeedleEngine/Unity, BabylonJS)
+
 ## Contributors 
 1. Project Manager: Destiny Guzman
 2. Developer: Greg DeCarlo, Leo (Pixel Hustler)
