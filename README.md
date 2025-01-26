@@ -38,7 +38,5 @@ We deeply thank the residents of Los Angeles who have endured the recent wildfir
 
 
 ## Additional Information
-_Devpost_:
-_If you want to donate to victims of the LA fires, donate here_: 
-
+Check out our Devpost for more information: https://devpost.com/software/kozykit
 ![kozy-kit](https://github.com/user-attachments/assets/4a659c4b-e2a8-42d0-9909-ce9416af91a9)
