@@ -1,6 +1,6 @@
 # kozykit-reality-hack
 
-## About KozyKt
+## About KozyKit
 _KozyKit: Transforming Spaces, Healing Hearts_
 
 **KozyKit** is a platform designed with displaced children from the LA wildfires in mind, offering emotional support, creative expression, and a sense of belonging during times of upheaval. KozyKit empowers children to reclaim a sense of comfort and control by transforming temporary spaces into enchanted oases. Users can upload 2D images of cherished lost possessions or favorite toys through intuitive tools and incorporate them into reimagined roomscapes—whether it’s an enchanted forest, an undersea adventure, or a personal dreamland. With every interaction, KozyKit fosters a therapeutic process that turns the loss and uncertainty of displacement into moments of joy, imagination, and possibility.
@@ -12,7 +12,7 @@ Beyond personal transformation, KozyKit promotes connection and resilience throu
 3. Collaborative Play: Multiplayer features allow kids to share toys, decorate spaces, and explore their friends' roomscapes together.
 
 ## What's Next 
-1. Interactive check ins with Kit (fox avatar): Users will be able to ask Kit if their friends are online, or can talk to her directly instead of journaling. Kit will be able to respond verbally and engage users in conversation, improving copresence/UX.
+1. Interactive check-ins with Kit (fox avatar): Users will be able to ask Kit if their friends are online, or can talk to her directly instead of journaling. Kit will be able to respond verbally and engage users in conversation, improving copresence/UX.
 3. Expanded Themes: Introducing new imaginative worlds for even more creative exploration.
 4. User-generated assets: Users can draw or color in portraits to hang in their rooms from a canvas/coloring pages
 5. Enhanced Connectivity: Building features to foster larger group interactions and community connections, including MR games that friends can play when visiting.
