@@ -26,8 +26,9 @@ Beyond personal transformation, KozyKit promotes connection and resilience throu
 4. Integrated a chatbot widget (custom-designed HTML and JavaScript interface) for interactive therapeutic conversations. The bot uses OpenAI's Chat Completions API (GPT-4) to deliver empathetic responses aligned with mental health best practices.
 5. AI-assisted coding and prototyping tools (ChatGPT, Bolt.new, Claude.ai, websim.ai) helped to streamline idea generation and compatibility of web-based AR/XR experiences (e.g. AR.js, A-Frame, 8th Wall, NeedleEngine/Unity, BabylonJS)
 
-## Test Project
-https://anomalouspixel-37472.bubbleapps.io/version-test
+## Try Our Project
+[https://anomalouspixel-37472.bubbleapps.io/version-test
+](https://anomalouspixel-37472.bubbleapps.io/version-test/app-v3)
 
 ## Contributors 
 1. Project Manager: Destiny Guzman
