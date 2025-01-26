@@ -32,10 +32,10 @@ Beyond personal transformation, KozyKit promotes connection and resilience throu
 
 ## Contributors 
 1. Project Manager: Destiny Guzman
-2. Lead Developer: Leo (Pixel Hustler)
-3. UI/UX Designer: Swetha Konduru
-4. Creative Technologist: Joy Guey
-5. Developer: Greg DeCarlo
+2. Creative Technologist: Joy Guey
+3. Lead Developer: Leo (Pixel Hustler)
+4. Developer: Greg DeCarlo
+5. UI/UX Designer: Swetha Konduru
 
 ## Acknowledgements
 We deeply thank the residents of Los Angeles who have endured the recent wildfires for sharing their stories and perspectives with us. Your courage and resilience have profoundly shaped KozyKit, guiding its mission to bring comfort and joy to displaced children during this challenging time. KozyKit is a testament to the strength and compassion of this incredible community, and we are honored to support you in helping those who need it most.
